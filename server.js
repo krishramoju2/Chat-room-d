@@ -6,38 +6,34 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(__dirname)); // serve index.html and script.js from root
+app.use(express.static(__dirname)); // Serve files from root
 
-// Save messages in memory (limit to last 100)
 let messageHistory = [];
 
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+  console.log('A user connected');
 
-  // Send full message history to the newly connected client
+  // Send message history
   socket.emit('message history', messageHistory);
 
-  // When a new message is received
   socket.on('chat message', (msgText) => {
     const msg = {
       text: msgText,
       time: new Date().toLocaleTimeString(),
     };
 
-    // Save message and enforce limit
     messageHistory.push(msg);
     if (messageHistory.length > 100) messageHistory.shift();
 
-    // Send to all connected clients
     io.emit('chat message', msg);
   });
 
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+    console.log('User disconnected');
   });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server listening at http://localhost:${PORT}`);
 });
